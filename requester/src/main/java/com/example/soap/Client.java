@@ -1,29 +1,25 @@
 package com.example.soap;
 
-import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+import com.example.soap.generated.HelloWorld;
+import com.example.soap.generated.HelloWorldService;
 
 /**
  * SOAP Web Service Requester (Client)
- * This class connects to the HelloWorld service and invokes its methods
+ * This class connects to the HelloWorld service using WSDL-generated code
  */
 public class Client {
 
-    private static final String SERVICE_ADDRESS = "http://localhost:9090/HelloWorld";
-
     public static void main(String[] args) {
-        System.out.println("Apache CXF SOAP Client");
-        System.out.println("=====================\n");
-
-        // Create client proxy
-        JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
-        factory.setServiceClass(HelloWorld.class);
-        factory.setAddress(SERVICE_ADDRESS);
-
-        HelloWorld client = (HelloWorld) factory.create();
+        System.out.println("Apache CXF SOAP Client (WSDL-Generated)");
+        System.out.println("========================================\n");
 
         try {
+            // Create service from WSDL-generated code
+            HelloWorldService service = new HelloWorldService();
+            HelloWorld client = service.getHelloWorldPort();
+
             // Test 1: sayHello method
-            System.out.println("Test 1: Calling sayHello()");
+            System.out.println("Test 1: Calling sayHello(\"Takahashi\")");
             System.out.println("---------------------------");
             String greeting = client.sayHello("Takahashi");
             System.out.println("Response: " + greeting);
@@ -59,13 +55,16 @@ public class Client {
             }
             System.out.println();
 
+            System.out.println("===========================================");
             System.out.println("All tests completed successfully!");
+            System.out.println("This client was generated from the WSDL file");
+            System.out.println("===========================================");
 
         } catch (Exception e) {
             System.err.println("Error calling web service:");
             System.err.println("  Message: " + e.getMessage());
             System.err.println("\nMake sure the server is running!");
-            System.err.println("Start the server with: mvn exec:java@run-server");
+            System.err.println("Start the server with: mvn -pl provider exec:java");
             e.printStackTrace();
         }
     }

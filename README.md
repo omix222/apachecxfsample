@@ -1,24 +1,39 @@
 # Apache CXF SOAP Web Service Sample
 
 JavaでApache CXFを使用したSOAP Webサービスのサンプルアプリケーションです。
-リクエスタ（クライアント）とプロバイダ（サーバー）の両方が含まれています。
+プロバイダ（サーバー）とリクエスタ（クライアント）の2つのモジュールで構成され、**WSDL駆動開発**を実践しています。
+
+## プロジェクトの特徴
+
+- **マルチモジュール構成**: ProviderとRequesterを分離し、関心事の分離を実現
+- **WSDL管理**: ProviderのWSDLをGit管理し、契約駆動開発を実現
+- **自動コード生成**: WSDLからクライアントコードを自動生成
 
 ## プロジェクト構成
 
 ```
 cxfsample/
-├── pom.xml                              # Maven設定ファイル
+├── pom.xml                              # 親POM（マルチモジュール設定）
 ├── README.md                            # このファイル
-└── src/
-    └── main/
-        └── java/
-            └── com/
-                └── example/
-                    └── soap/
-                        ├── HelloWorld.java       # Webサービスインターフェース
-                        ├── HelloWorldImpl.java   # Webサービス実装
-                        ├── Server.java           # プロバイダ（サーバー）
-                        └── Client.java           # リクエスタ（クライアント）
+├── provider/                            # プロバイダモジュール（サーバー）
+│   ├── pom.xml                          # Provider用POM
+│   └── src/
+│       └── main/
+│           ├── java/
+│           │   └── com/example/soap/
+│           │       ├── HelloWorld.java       # サービスインターフェース
+│           │       ├── HelloWorldImpl.java   # サービス実装
+│           │       └── Server.java           # サーバー起動クラス
+│           └── resources/
+│               └── wsdl/
+│                   └── HelloWorld.wsdl       # WSDL (Git管理)
+└── requester/                           # リクエスタモジュール（クライアント）
+    ├── pom.xml                          # Requester用POM
+    └── src/
+        └── main/
+            └── java/
+                └── com/example/soap/
+                    └── Client.java           # クライアント実行クラス
 ```
 
 ## 必要要件
@@ -26,13 +41,18 @@ cxfsample/
 - Java 11以上
 - Maven 3.6以上
 
-## セットアップ
+## セットアップとビルド
 
-### 1. プロジェクトのビルド
+### 1. プロジェクト全体のビルド
 
 ```bash
-mvn clean compile
+mvn clean install
 ```
+
+このコマンドは以下を実行します：
+- Providerモジュールのコンパイル
+- Requesterモジュールで、ProviderのWSDLからクライアントコードを自動生成
+- 両モジュールのビルドとパッケージング
 
 ## 使い方
 
@@ -41,13 +61,7 @@ mvn clean compile
 別のターミナルウィンドウでサーバーを起動します：
 
 ```bash
-mvn exec:java -Dexec.mainClass="com.example.soap.Server"
-```
-
-または：
-
-```bash
-mvn exec:java@run-server
+mvn -pl provider exec:java
 ```
 
 サーバーが起動すると以下のメッセージが表示されます：
@@ -79,13 +93,7 @@ http://localhost:9090/HelloWorld?wsdl
 別のターミナルウィンドウでクライアントを実行します：
 
 ```bash
-mvn exec:java -Dexec.mainClass="com.example.soap.Client"
-```
-
-または：
-
-```bash
-mvn exec:java@run-client
+mvn -pl requester exec:java
 ```
 
 ## Webサービスのメソッド
@@ -125,10 +133,10 @@ mvn exec:java@run-client
 クライアントを実行すると以下のような出力が得られます：
 
 ```
-Apache CXF SOAP Client
-=====================
+Apache CXF SOAP Client (WSDL-Generated)
+========================================
 
-Test 1: Calling sayHello()
+Test 1: Calling sayHello("Takahashi")
 ---------------------------
 Response: Hello, Takahashi! Welcome to Apache CXF SOAP Web Service.
 
@@ -155,7 +163,46 @@ Test 5: Multiple operations
 2. Hello, User2! Welcome to Apache CXF SOAP Web Service.
 3. Hello, User3! Welcome to Apache CXF SOAP Web Service.
 
+===========================================
 All tests completed successfully!
+This client was generated from the WSDL file
+===========================================
+```
+
+## 開発ワークフロー
+
+### WSDLの更新
+
+プロバイダ側のインターフェースを変更した場合：
+
+1. `HelloWorld.java` または `HelloWorldImpl.java` を編集
+2. サーバーを一時的に起動してWSDLを再取得：
+
+```bash
+# サーバーを起動
+mvn -pl provider exec:java &
+sleep 5
+
+# WSDLをダウンロード
+curl -o provider/src/main/resources/wsdl/HelloWorld.wsdl 'http://localhost:9090/HelloWorld?wsdl'
+
+# サーバーを停止
+pkill -f "com.example.soap.Server"
+```
+
+3. WSDLをGitにコミット
+4. 変更をリクエスタに反映：
+
+```bash
+mvn clean install
+```
+
+### クライアントコードの再生成
+
+WSDLを更新した後、クライアントコードを再生成するには：
+
+```bash
+mvn -pl requester clean generate-sources
 ```
 
 ## トラブルシューティング
@@ -174,38 +221,76 @@ Error calling web service:
 
 ### ポート変更方法
 
-`Server.java` と `Client.java` の `SERVICE_ADDRESS` を変更してください：
+1. `provider/src/main/java/com/example/soap/Server.java` で `SERVICE_ADDRESS` を変更
+2. サーバーを再起動してWSDLを再生成
+3. WSDLを更新してリクエスタを再ビルド
 
-```java
-private static final String SERVICE_ADDRESS = "http://localhost:8080/HelloWorld";
+### ビルドエラー
+
+```bash
+# クリーンビルド
+mvn clean install
+
+# 特定のモジュールのみビルド
+mvn -pl provider clean compile
+mvn -pl requester clean compile
 ```
 
 ## カスタマイズ
 
 ### 新しいメソッドの追加
 
-1. `HelloWorld.java` インターフェースに新しいメソッドを追加
-2. `HelloWorldImpl.java` に実装を追加
-3. サーバーを再起動
-4. クライアントから新しいメソッドを呼び出し
+#### Provider側（サーバー）
 
-### 例：
+1. `provider/src/main/java/com/example/soap/HelloWorld.java` インターフェースに新しいメソッドを追加：
 
 ```java
-// HelloWorld.java
 @WebMethod
 String getCurrentTime();
+```
 
-// HelloWorldImpl.java
+2. `provider/src/main/java/com/example/soap/HelloWorldImpl.java` に実装を追加：
+
+```java
 @Override
 public String getCurrentTime() {
     return new java.util.Date().toString();
 }
+```
 
-// Client.java
+3. WSDLを再生成（上記の「WSDLの更新」セクションを参照）
+
+#### Requester側（クライアント）
+
+1. プロジェクトを再ビルド：
+
+```bash
+mvn clean install
+```
+
+2. `requester/src/main/java/com/example/soap/Client.java` で新しいメソッドを呼び出し：
+
+```java
 String time = client.getCurrentTime();
 System.out.println("Server time: " + time);
 ```
+
+## プロジェクトの利点
+
+### WSDL駆動開発のメリット
+
+1. **契約ファースト**: WSDLが正式な契約として機能
+2. **バージョン管理**: WSDLの変更履歴を追跡可能
+3. **自動生成**: クライアントコードを手動で書く必要がない
+4. **型安全性**: WSDLから生成されたコードは型安全
+5. **ドキュメント**: WSDLがそのままAPIドキュメントとして機能
+
+### マルチモジュール構成のメリット
+
+1. **分離**: ProviderとRequesterの関心事を分離
+2. **再利用**: 複数のクライアントアプリケーションで共通のProviderを使用可能
+3. **独立ビルド**: 各モジュールを個別にビルド・テスト可能
+4. **明確な依存関係**: モジュール間の依存関係が明確
 
 ## Apache CXFについて
 
@@ -213,7 +298,8 @@ Apache CXFは、Webサービス（SOAPおよびRESTful）を開発するため�
 
 主な特徴：
 - JAX-WS（SOAP）とJAX-RS（REST）のサポート
-- WSDLからのコード生成
+- WSDLからのコード生成（wsdl2java）
+- JavaからのWSDL生成（java2wsdl）
 - さまざまなプロトコルとトランスポートのサポート
 - Spring Frameworkとの統合
 

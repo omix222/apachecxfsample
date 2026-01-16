@@ -3,7 +3,12 @@
     "allow": [
       "Bash(mvn clean compile:*)",
       "Bash(tree:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(mvn process-classes:*)",
+      "Bash(cat:*)",
+      "Bash(mvn:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)"
     ]
   }
 }
