@@ -50,7 +50,7 @@
                         <configuration>
                             <wsdlOptions>
                                 <wsdlOption>
-                                    <wsdl>${project.parent.basedir}/provider/src/main/resources/wsdl/HelloWorld.wsdl</wsdl>
+                                    <wsdl>${basedir}/src/main/resources/wsdl/HelloWorld.wsdl</wsdl>
                                     <extraargs>
                                         <extraarg>-client</extraarg>
                                         <extraarg>-p</extraarg>

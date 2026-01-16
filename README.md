@@ -6,8 +6,9 @@ JavaでApache CXFを使用したSOAP Webサービスのサンプルアプリケ�
 ## プロジェクトの特徴
 
 - **マルチモジュール構成**: ProviderとRequesterを分離し、関心事の分離を実現
-- **WSDL管理**: ProviderのWSDLをGit管理し、契約駆動開発を実現
-- **自動コード生成**: WSDLからクライアントコードを自動生成
+- **WSDL管理**: ProviderとRequester両方でWSDLをGit管理し、契約駆動開発を実現
+- **自動コード生成**: RequesterのローカルWSDLからクライアントコードを自動生成
+- **独立したビルド**: Requesterは独立したプロジェクトとしてビルド可能
 
 ## プロジェクト構成
 
@@ -26,14 +27,17 @@ cxfsample/
 │           │       └── Server.java           # サーバー起動クラス
 │           └── resources/
 │               └── wsdl/
-│                   └── HelloWorld.wsdl       # WSDL (Git管理)
+│                   └── HelloWorld.wsdl       # WSDL (Git管理・マスター)
 └── requester/                           # リクエスタモジュール（クライアント）
     ├── pom.xml                          # Requester用POM
     └── src/
         └── main/
-            └── java/
-                └── com/example/soap/
-                    └── Client.java           # クライアント実行クラス
+            ├── java/
+            │   └── com/example/soap/
+            │       └── Client.java           # クライアント実行クラス
+            └── resources/
+                └── wsdl/
+                    └── HelloWorld.wsdl       # WSDL (Git管理・コピー)
 ```
 
 ## 必要要件
@@ -51,7 +55,7 @@ mvn clean install
 
 このコマンドは以下を実行します：
 - Providerモジュールのコンパイル
-- Requesterモジュールで、ProviderのWSDLからクライアントコードを自動生成
+- Requesterモジュールで、ローカルのWSDLファイルからクライアントコードを自動生成
 - 両モジュールのビルドとパッケージング
 
 ## 使い方
@@ -183,15 +187,22 @@ This client was generated from the WSDL file
 mvn -pl provider exec:java &
 sleep 5
 
-# WSDLをダウンロード
+# WSDLをダウンロード（Provider側）
 curl -o provider/src/main/resources/wsdl/HelloWorld.wsdl 'http://localhost:9090/HelloWorld?wsdl'
 
 # サーバーを停止
 pkill -f "com.example.soap.Server"
 ```
 
-3. WSDLをGitにコミット
-4. 変更をリクエスタに反映：
+3. **WSDLをRequester側にコピー**：
+
+```bash
+# Provider → Requesterへコピー
+cp provider/src/main/resources/wsdl/HelloWorld.wsdl requester/src/main/resources/wsdl/
+```
+
+4. 両方のWSDLをGitにコミット
+5. 変更をリクエスタに反映：
 
 ```bash
 mvn clean install
@@ -288,9 +299,10 @@ System.out.println("Server time: " + time);
 ### マルチモジュール構成のメリット
 
 1. **分離**: ProviderとRequesterの関心事を分離
-2. **再利用**: 複数のクライアントアプリケーションで共通のProviderを使用可能
-3. **独立ビルド**: 各モジュールを個別にビルド・テスト可能
-4. **明確な依存関係**: モジュール間の依存関係が明確
+2. **独立したプロジェクト**: Requesterは自身のWSDLを持ち、単独でビルド可能
+3. **再利用**: 複数のクライアントアプリケーションで共通のProviderを使用可能
+4. **独立ビルド**: 各モジュールを個別にビルド・テスト可能
+5. **明確な依存関係**: ビルド時にProvider側への依存なし
 
 ## Apache CXFについて
 
