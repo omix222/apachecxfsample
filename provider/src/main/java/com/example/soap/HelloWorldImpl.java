@@ -24,19 +24,18 @@ public class HelloWorldImpl implements HelloWorld {
     }
 
     @Override
-    public String getUserInfo(String userId) {
+    public User getUserInfo(String userId) {
         if (userId == null || userId.trim().isEmpty()) {
-            return "Error: User ID is required";
+            // Return a default user for invalid input
+            return new User("unknown", "Unknown User", "Inactive", "N/A");
         }
 
-        // Simulate user lookup
-        return String.format(
-            "User Information:\n" +
-            "  User ID: %s\n" +
-            "  Name: User_%s\n" +
-            "  Status: Active\n" +
-            "  Created: 2024-01-01",
-            userId, userId
+        // Simulate user lookup and return User object
+        return new User(
+            userId,
+            "User_" + userId,
+            "Active",
+            "2024-01-01"
         );
     }
 }

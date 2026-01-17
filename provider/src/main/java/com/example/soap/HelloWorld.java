@@ -31,8 +31,8 @@ public interface HelloWorld {
     /**
      * Method to get user information
      * @param userId User ID
-     * @return User information as string
+     * @return User object with detailed information
      */
     @WebMethod
-    String getUserInfo(@WebParam(name = "userId") String userId);
+    User getUserInfo(@WebParam(name = "userId") String userId);
 }

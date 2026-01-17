@@ -42,8 +42,12 @@ public class Client {
             // Test 4: getUserInfo method
             System.out.println("Test 4: Calling getUserInfo(\"12345\")");
             System.out.println("---------------------------");
-            String userInfo = client.getUserInfo("12345");
-            System.out.println("Response:\n" + userInfo);
+            com.example.soap.generated.User userInfo = client.getUserInfo("12345");
+            System.out.println("Response:");
+            System.out.println("  User ID: " + userInfo.getUserId());
+            System.out.println("  Name: " + userInfo.getName());
+            System.out.println("  Status: " + userInfo.getStatus());
+            System.out.println("  Created: " + userInfo.getCreated());
             System.out.println();
 
             // Test 5: Multiple operations

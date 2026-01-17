@@ -93,12 +93,14 @@ public class HelloWorldResource {
             HelloWorldService service = new HelloWorldService();
             HelloWorld client = service.getHelloWorldPort();
 
-            String userInfo = client.getUserInfo(userId);
+            com.example.soap.generated.User user = client.getUserInfo(userId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("userId", userId);
-            response.put("userInfo", userInfo);
+            response.put("userId", user.getUserId());
+            response.put("name", user.getName());
+            response.put("status", user.getStatus());
+            response.put("created", user.getCreated());
 
             return Response.ok(response).build();
         } catch (Exception e) {
@@ -144,11 +146,16 @@ public class HelloWorldResource {
             results.put("test3", test3);
 
             // Test 4: getUserInfo
-            String userInfo = client.getUserInfo("12345");
-            Map<String, String> test4 = new HashMap<>();
+            com.example.soap.generated.User userInfo = client.getUserInfo("12345");
+            Map<String, Object> test4 = new HashMap<>();
             test4.put("method", "getUserInfo");
             test4.put("input", "12345");
-            test4.put("result", userInfo);
+            Map<String, String> userDetails = new HashMap<>();
+            userDetails.put("userId", userInfo.getUserId());
+            userDetails.put("name", userInfo.getName());
+            userDetails.put("status", userInfo.getStatus());
+            userDetails.put("created", userInfo.getCreated());
+            test4.put("result", userDetails);
             results.put("test4", test4);
 
             results.put("success", true);

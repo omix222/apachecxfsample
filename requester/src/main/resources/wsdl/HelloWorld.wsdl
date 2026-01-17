@@ -2,6 +2,8 @@
   <wsdl:types>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://soap.example.com/" elementFormDefault="unqualified" targetNamespace="http://soap.example.com/" version="1.0">
 
+  <xs:element name="User" type="tns:User"/>
+
   <xs:element name="add" type="tns:add"/>
 
   <xs:element name="addResponse" type="tns:addResponse"/>
@@ -22,7 +24,16 @@
 
   <xs:complexType name="getUserInfoResponse">
     <xs:sequence>
-      <xs:element minOccurs="0" name="return" type="xs:string"/>
+      <xs:element minOccurs="0" name="return" type="tns:User"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="User">
+    <xs:sequence>
+      <xs:element name="userId" type="xs:string"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="status" type="xs:string"/>
+      <xs:element name="created" type="xs:string"/>
     </xs:sequence>
   </xs:complexType>
 
