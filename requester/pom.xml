@@ -12,29 +12,43 @@
     </parent>
 
     <artifactId>cxf-soap-requester</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
-    <name>Apache CXF SOAP Sample - Requester</name>
-    <description>SOAP Web Service Requester (Client)</description>
+    <name>Apache CXF SOAP Sample - Requester (WildFly Bootable JAR)</name>
+    <description>SOAP Web Service Requester running on WildFly Bootable JAR</description>
+
+    <properties>
+        <version.wildfly>31.0.0.Final</version.wildfly>
+        <version.wildfly.maven.plugin>11.0.0.Final</version.wildfly.maven.plugin>
+        <version.jakarta.ee>10.0.0</version.jakarta.ee>
+        <cxf.version>4.0.5</cxf.version>
+    </properties>
 
     <dependencies>
+        <!-- Jakarta EE API -->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>${version.jakarta.ee}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Apache CXF (provided by WildFly) -->
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <finalName>cxf-soap-requester</finalName>
         <plugins>
             <!-- WSDL to Java code generator -->
             <plugin>
@@ -63,12 +77,42 @@
                 </executions>
             </plugin>
 
-            <!-- Plugin to run Client -->
+            <!-- WildFly Bootable JAR Maven Plugin -->
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-jar-maven-plugin</artifactId>
+                <version>${version.wildfly.maven.plugin}</version>
                 <configuration>
-                    <mainClass>com.example.soap.Client</mainClass>
+                    <feature-packs>
+                        <feature-pack>
+                            <location>org.wildfly:wildfly-galleon-pack:${version.wildfly}</location>
+                        </feature-pack>
+                    </feature-packs>
+                    <layers>
+                        <layer>jaxrs-server</layer>
+                        <layer>webservices</layer>
+                        <layer>cdi</layer>
+                    </layers>
+                    <plugin-options>
+                        <jboss-fork-embedded>true</jboss-fork-embedded>
+                    </plugin-options>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- WAR Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
         </plugins>

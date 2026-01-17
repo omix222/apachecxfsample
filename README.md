@@ -9,6 +9,7 @@ JavaでApache CXFを使用したSOAP Webサービスのサンプルアプリケ�
 - **WSDL管理**: ProviderとRequester両方でWSDLをGit管理し、契約駆動開発を実現
 - **自動コード生成**: RequesterのローカルWSDLからクライアントコードを自動生成
 - **独立したビルド**: Requesterは独立したプロジェクトとしてビルド可能
+- **WildFly Bootable JAR**: RequesterはWildFly 31 Bootable JARとしてパッケージング可能で、Jakarta EE 10対応のWebアプリケーションとして動作
 
 ## プロジェクト構成
 
@@ -28,16 +29,23 @@ cxfsample/
 │           └── resources/
 │               └── wsdl/
 │                   └── HelloWorld.wsdl       # WSDL (Git管理・マスター)
-└── requester/                           # リクエスタモジュール（クライアント）
-    ├── pom.xml                          # Requester用POM
+└── requester/                           # リクエスタモジュール（WildFly Bootable JAR）
+    ├── pom.xml                          # Requester用POM（WAR + Bootable JAR）
     └── src/
         └── main/
             ├── java/
             │   └── com/example/soap/
-            │       └── Client.java           # クライアント実行クラス
-            └── resources/
-                └── wsdl/
-                    └── HelloWorld.wsdl       # WSDL (Git管理・コピー)
+            │       ├── RestApplication.java      # JAX-RS アプリケーション設定
+            │       └── HelloWorldResource.java   # REST APIエンドポイント
+            ├── resources/
+            │   └── wsdl/
+            │       └── HelloWorld.wsdl       # WSDL (Git管理・コピー)
+            └── webapp/
+                ├── index.html                # Web UI
+                └── WEB-INF/
+                    ├── beans.xml             # CDI設定
+                    ├── jboss-web.xml         # JBoss設定
+                    └── web.xml               # Web設定
 ```
 
 ## 必要要件
@@ -92,12 +100,49 @@ curl http://localhost:9090/HelloWorld?wsdl
 http://localhost:9090/HelloWorld?wsdl
 ```
 
-### ステップ3: クライアント（リクエスタ）の実行
+### ステップ3: クライアント（リクエスタ）の実行 - WildFly Bootable JAR版
 
-別のターミナルウィンドウでクライアントを実行します：
+RequesterはWildFly 31 Bootable JARとして動作するWebアプリケーションとして実装されています。
+
+#### Bootable JARのビルド
 
 ```bash
-mvn -pl requester exec:java
+mvn clean package -pl requester
+```
+
+このコマンドにより、以下が生成されます：
+- `requester/target/cxf-soap-requester.war` - 通常のWARファイル
+- `requester/target/cxf-soap-requester-bootable.jar` - WildFly Bootable JAR (約130MB)
+
+#### Bootable JARの起動
+
+```bash
+java -jar requester/target/cxf-soap-requester-bootable.jar
+```
+
+サーバーが起動すると、以下のURLでアクセスできます：
+
+- **Web UI**: http://localhost:8080/
+- **ヘルスチェック**: http://localhost:8080/rest/api/health
+- **挨拶メッセージ**: http://localhost:8080/rest/api/hello?name=Takahashi
+- **加算**: http://localhost:8080/rest/api/add?a=10&b=20
+- **ユーザー情報**: http://localhost:8080/rest/api/user/12345
+- **全テスト実行**: http://localhost:8080/rest/api/test/all
+
+#### REST APIレスポンス例
+
+```bash
+# ヘルスチェック
+curl http://localhost:8080/rest/api/health
+# => {"status":"UP","service":"SOAP Client (WildFly Bootable JAR)"}
+
+# 挨拶メッセージ
+curl "http://localhost:8080/rest/api/hello?name=Takahashi"
+# => {"success":true,"input":"Takahashi","message":"Hello, Takahashi! Welcome to Apache CXF SOAP Web Service."}
+
+# 全テスト実行
+curl http://localhost:8080/rest/api/test/all
+# => すべてのSOAPメソッドのテスト結果をJSON形式で返します
 ```
 
 ## Webサービスのメソッド
@@ -316,6 +361,60 @@ Apache CXFは、Webサービス（SOAPおよびRESTful）を開発するため�
 - Spring Frameworkとの統合
 
 公式サイト: https://cxf.apache.org/
+
+## WildFly Bootable JARについて
+
+RequesterモジュールはWildFly 31 Bootable JARとして実装されています。
+
+### 技術スタック
+
+- **アプリケーションサーバー**: WildFly 31.0.0.Final
+- **Jakarta EE**: 10.0
+- **Apache CXF**: 4.0.5 (Jakarta EE互換)
+- **JAX-RS**: REST APIエンドポイント
+- **CDI**: 依存性注入
+- **パッケージング**: Bootable JAR（単一実行可能JAR）
+
+### アーキテクチャ
+
+1. **REST APIレイヤー** (`HelloWorldResource.java`)
+   - JAX-RSエンドポイントを提供
+   - SOAPクライアントをラップしてJSON形式で公開
+   - エラーハンドリングとレスポンス整形
+
+2. **SOAP クライアントレイヤー**
+   - WSDLから自動生成されたクライアントコード
+   - Jakarta EE `jakarta.xml.ws.*` パッケージを使用（CXF 4.x）
+
+3. **Web UIレイヤー**
+   - HTML/CSSによるシンプルなインターフェース
+   - 各エンドポイントへのリンク
+
+### Galleon レイヤー構成
+
+WildFly Bootable JARは以下のGalleonレイヤーを使用：
+
+- `jaxrs-server`: JAX-RS (REST API) サポート
+- `webservices`: JAX-WS (SOAP) クライアントサポート
+- `cdi`: CDI (Contexts and Dependency Injection)
+
+これにより、必要最小限のWildFlyランタイムのみをパッケージングし、約130MBのBootable JARを実現しています。
+
+### デプロイメント
+
+Bootable JARは以下の環境にデプロイ可能です：
+
+- ローカル開発環境（`java -jar`で実行）
+- コンテナ環境（Docker, Kubernetes）
+- クラウド環境（AWS, Azure, GCP）
+
+Dockerイメージ例：
+```dockerfile
+FROM eclipse-temurin:17-jre
+COPY requester/target/cxf-soap-requester-bootable.jar /app/app.jar
+EXPOSE 8080
+CMD ["java", "-jar", "/app/app.jar"]
+```
 
 ## ライセンス
 

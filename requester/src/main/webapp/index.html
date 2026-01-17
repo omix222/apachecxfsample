@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOAP Client - WildFly Bootable JAR</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+        .endpoint code {
+            color: #d63384;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .endpoint a {
+            color: #007bff;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        .endpoint a:hover {
+            text-decoration: underline;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SOAP Client Service <span class="status">Running on WildFly</span></h1>
+        <p>Apache CXF SOAP クライアントがWildFly 31 Bootable JARで動作しています。</p>
+
+        <div class="note">
+            <strong>注意:</strong> これらのエンドポイントを使用する前に、SOAPサーバー（Provider）が起動していることを確認してください。
+            <br>サーバー起動: <code>mvn -pl provider exec:java</code>
+        </div>
+
+        <h2>利用可能なエンドポイント</h2>
+
+        <div class="endpoint">
+            <strong>ヘルスチェック</strong><br>
+            <code>GET</code> <a href="rest/api/health">/rest/api/health</a><br>
+            <small>サービスの状態を確認します。</small>
+        </div>
+
+        <div class="endpoint">
+            <strong>挨拶メッセージ</strong><br>
+            <code>GET</code> <a href="rest/api/hello?name=Takahashi">/rest/api/hello?name=Takahashi</a><br>
+            <small>名前を指定して挨拶メッセージを取得します。</small>
+        </div>
+
+        <div class="endpoint">
+            <strong>加算</strong><br>
+            <code>GET</code> <a href="rest/api/add?a=10&b=20">/rest/api/add?a=10&b=20</a><br>
+            <small>2つの数値を加算します。</small>
+        </div>
+
+        <div class="endpoint">
+            <strong>ユーザー情報</strong><br>
+            <code>GET</code> <a href="rest/api/user/12345">/rest/api/user/12345</a><br>
+            <small>ユーザーIDからユーザー情報を取得します。</small>
+        </div>
+
+        <div class="endpoint">
+            <strong>全テスト実行</strong><br>
+            <code>GET</code> <a href="rest/api/test/all">/rest/api/test/all</a><br>
+            <small>すべてのSOAPメソッドをテストします。</small>
+        </div>
+
+        <h2>技術情報</h2>
+        <ul>
+            <li>アプリケーションサーバー: WildFly 31.0.0.Final</li>
+            <li>Jakarta EE 10</li>
+            <li>JAX-RS (REST API)</li>
+            <li>Apache CXF (SOAP Client)</li>
+            <li>パッケージング: Bootable JAR</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -8,7 +8,10 @@
       "Bash(cat:*)",
       "Bash(mvn:*)",
       "Bash(curl:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(kill:*)",
+      "Bash(ls:*)",
+      "Bash(python3:*)"
     ]
   }
 }
