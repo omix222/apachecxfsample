@@ -16,7 +16,8 @@ import javax.xml.bind.annotation.XmlType;
     "userId",
     "name",
     "status",
-    "created"
+    "created",
+    "attribute"
 })
 public class User {
 
@@ -32,6 +33,9 @@ public class User {
     @XmlElement(required = true)
     private String created;
 
+    @XmlElement(required = false)
+    private String attribute;
+
     // Default constructor (required for JAXB)
     public User() {
     }
@@ -42,6 +46,7 @@ public class User {
         this.name = name;
         this.status = status;
         this.created = created;
+        this.attribute = "defaultAttribute";
     }
 
     // Getters and Setters
@@ -77,6 +82,13 @@ public class User {
         this.created = created;
     }
 
+    public String getAttribute() {
+        return attribute;
+    }
+    public void setAttribute(String attribute) {
+        this.attribute = attribute;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -84,6 +96,7 @@ public class User {
                 ", name='" + name + '\'' +
                 ", status='" + status + '\'' +
                 ", created='" + created + '\'' +
+                ", attribute='" + attribute + '\'' +
                 '}';
     }
 }

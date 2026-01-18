@@ -179,19 +179,22 @@ public class HelloWorldResource {
     /**
      * Create SOAP client with logging handler attached.
      * This enables logging of raw SOAP request/response XML to standard output.
+     * Schema validation is disabled to allow optional fields from provider.
      */
     @SuppressWarnings("rawtypes")
     private HelloWorld createClientWithLogging() {
         HelloWorldService service = new HelloWorldService();
         HelloWorld client = service.getHelloWorldPort();
 
-        // Add SOAP logging handler
         BindingProvider bindingProvider = (BindingProvider) client;
+
+        // Add handlers: filter unknown elements first, then log
         Binding binding = bindingProvider.getBinding();
         List<Handler> handlerChain = binding.getHandlerChain();
         if (handlerChain == null) {
             handlerChain = new ArrayList<>();
         }
+        handlerChain.add(new UnknownElementFilter());
         handlerChain.add(new SOAPLoggingHandler());
         binding.setHandlerChain(handlerChain);
 

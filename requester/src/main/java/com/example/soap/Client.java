@@ -23,8 +23,8 @@ public class Client {
             HelloWorldService service = new HelloWorldService();
             HelloWorld client = service.getHelloWorldPort();
 
-            // Add SOAP logging handler to capture request/response XML
-            addLoggingHandler(client);
+            // Configure client: disable schema validation and add logging handler
+            configureClient(client);
 
             // Test 1: sayHello method
             System.out.println("Test 1: Calling sayHello(\"Takahashi\")");
@@ -82,16 +82,19 @@ public class Client {
     }
 
     /**
-     * Add SOAP logging handler to capture request/response XML.
+     * Configure SOAP client with logging handler and disable schema validation.
      */
     @SuppressWarnings("rawtypes")
-    private static void addLoggingHandler(HelloWorld client) {
+    private static void configureClient(HelloWorld client) {
         BindingProvider bindingProvider = (BindingProvider) client;
+
+        // Add handlers: filter unknown elements first, then log
         Binding binding = bindingProvider.getBinding();
         List<Handler> handlerChain = binding.getHandlerChain();
         if (handlerChain == null) {
             handlerChain = new ArrayList<>();
         }
+        handlerChain.add(new UnknownElementFilter());
         handlerChain.add(new SOAPLoggingHandler());
         binding.setHandlerChain(handlerChain);
     }
