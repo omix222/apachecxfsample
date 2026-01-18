@@ -6,7 +6,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.handler.Handler;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,8 +43,7 @@ public class HelloWorldResource {
     @Path("/hello")
     public Response sayHello(@QueryParam("name") @DefaultValue("Guest") String name) {
         try {
-            HelloWorldService service = new HelloWorldService();
-            HelloWorld client = service.getHelloWorldPort();
+            HelloWorld client = createClientWithLogging();
 
             String greeting = client.sayHello(name);
 
@@ -64,8 +68,7 @@ public class HelloWorldResource {
             @QueryParam("a") @DefaultValue("0") int a,
             @QueryParam("b") @DefaultValue("0") int b) {
         try {
-            HelloWorldService service = new HelloWorldService();
-            HelloWorld client = service.getHelloWorldPort();
+            HelloWorld client = createClientWithLogging();
 
             int result = client.add(a, b);
 
@@ -90,8 +93,7 @@ public class HelloWorldResource {
     @Path("/user/{userId}")
     public Response getUserInfo(@PathParam("userId") String userId) {
         try {
-            HelloWorldService service = new HelloWorldService();
-            HelloWorld client = service.getHelloWorldPort();
+            HelloWorld client = createClientWithLogging();
 
             com.example.soap.generated.User user = client.getUserInfo(userId);
 
@@ -118,8 +120,7 @@ public class HelloWorldResource {
         Map<String, Object> results = new HashMap<>();
 
         try {
-            HelloWorldService service = new HelloWorldService();
-            HelloWorld client = service.getHelloWorldPort();
+            HelloWorld client = createClientWithLogging();
 
             // Test 1: sayHello
             String greeting1 = client.sayHello("Takahashi");
@@ -173,5 +174,27 @@ public class HelloWorldResource {
         error.put("error", message);
         error.put("hint", "Make sure the SOAP server is running at http://localhost:9090/HelloWorld");
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(error).build();
+    }
+
+    /**
+     * Create SOAP client with logging handler attached.
+     * This enables logging of raw SOAP request/response XML to standard output.
+     */
+    @SuppressWarnings("rawtypes")
+    private HelloWorld createClientWithLogging() {
+        HelloWorldService service = new HelloWorldService();
+        HelloWorld client = service.getHelloWorldPort();
+
+        // Add SOAP logging handler
+        BindingProvider bindingProvider = (BindingProvider) client;
+        Binding binding = bindingProvider.getBinding();
+        List<Handler> handlerChain = binding.getHandlerChain();
+        if (handlerChain == null) {
+            handlerChain = new ArrayList<>();
+        }
+        handlerChain.add(new SOAPLoggingHandler());
+        binding.setHandlerChain(handlerChain);
+
+        return client;
     }
 }

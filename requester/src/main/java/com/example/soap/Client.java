@@ -2,6 +2,11 @@ package com.example.soap;
 
 import com.example.soap.generated.HelloWorld;
 import com.example.soap.generated.HelloWorldService;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.handler.Handler;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * SOAP Web Service Requester (Client)
@@ -17,6 +22,9 @@ public class Client {
             // Create service from WSDL-generated code
             HelloWorldService service = new HelloWorldService();
             HelloWorld client = service.getHelloWorldPort();
+
+            // Add SOAP logging handler to capture request/response XML
+            addLoggingHandler(client);
 
             // Test 1: sayHello method
             System.out.println("Test 1: Calling sayHello(\"Takahashi\")");
@@ -71,5 +79,20 @@ public class Client {
             System.err.println("Start the server with: mvn -pl provider exec:java");
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Add SOAP logging handler to capture request/response XML.
+     */
+    @SuppressWarnings("rawtypes")
+    private static void addLoggingHandler(HelloWorld client) {
+        BindingProvider bindingProvider = (BindingProvider) client;
+        Binding binding = bindingProvider.getBinding();
+        List<Handler> handlerChain = binding.getHandlerChain();
+        if (handlerChain == null) {
+            handlerChain = new ArrayList<>();
+        }
+        handlerChain.add(new SOAPLoggingHandler());
+        binding.setHandlerChain(handlerChain);
     }
 }
