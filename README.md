@@ -562,7 +562,28 @@ CMD ["java", "-jar", "/app/app.jar"]
                 "reveal": "always",
                 "panel": "new"
             }
+        },
+        {
+            "label": "Open Requester (Browser)",
+            "type": "shell",
+            "command": "open",
+            "args": ["http://localhost:8080/"],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Open Provider WSDL (Browser)",
+            "type": "shell",
+            "command": "open",
+            "args": ["http://localhost:9090/HelloWorld?wsdl"],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent",
+                "panel": "shared"
+            }
         }
     ]
 }
-```
