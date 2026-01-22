@@ -419,3 +419,150 @@ CMD ["java", "-jar", "/app/app.jar"]
 ## ライセンス
 
 このサンプルコードはMITライセンスの下で公開されています。
+
+
+## tasks.json 
+```
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build All",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["clean", "package", "-DskipTests"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$mvn",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Build Provider",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["clean", "package", "-DskipTests"],
+            "options": {
+                "cwd": "${workspaceFolder}/provider"
+            },
+            "problemMatcher": "$mvn",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Build Requester",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["clean", "package", "-DskipTests"],
+            "options": {
+                "cwd": "${workspaceFolder}/requester"
+            },
+            "problemMatcher": "$mvn",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Run Provider (SOAP Server)",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["exec:java"],
+            "options": {
+                "cwd": "${workspaceFolder}/provider"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^.*$",
+                    "endsPattern": "^.*Server started at.*$"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+        {
+            "label": "Run Requester (WildFly)",
+            "type": "shell",
+            "command": "java",
+            "args": ["-jar", "target/cxf-soap-requester-bootable.jar"],
+            "options": {
+                "cwd": "${workspaceFolder}/requester"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^.*$",
+                    "endsPattern": "^.*WFLYSRV0025.*$"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+        {
+            "label": "Build & Run Provider",
+            "dependsOn": ["Build Provider", "Run Provider (SOAP Server)"],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build & Run Requester",
+            "dependsOn": ["Build Requester", "Run Requester (WildFly)"],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build & Run All Servers",
+            "dependsOn": ["Build All"],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "Test All",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["test"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": "$mvn",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Clean All",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["clean"],
+            "problemMatcher": "$mvn",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        }
+    ]
+}
+```
